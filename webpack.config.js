@@ -7,16 +7,14 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader'
-      }
-    ]
+        use: 'ts-loader',
+      },
+    ],
   },
   resolve: {
-    extensions: [
-      '.ts', '.tsx', '.js'
-    ]
+    extensions: ['.ts', '.tsx', '.js'],
   },
   devServer: {
-    contentBase: 'dist'
-  }
+    contentBase: 'dist',
+  },
 }
