@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "description": "a",
   "main": "index.js",
-  "repository": "todo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/macinjoke/react-webrtc-sample.git"
+  },
   "author": "macinjoke <shunji.makino@gmail.com>",
   "license": "MIT",
   "scripts": {
