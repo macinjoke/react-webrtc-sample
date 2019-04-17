@@ -4,4 +4,4 @@ import App from './components/App'
 
 const element = document.getElementById('app')
 
-render(<App name="alice" />, element)
+render(<App />, element)
