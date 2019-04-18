@@ -4,8 +4,6 @@ import Sample1 from './pages/Sample1'
 import Sample2 from './pages/Sample2'
 import Top from './pages/Top'
 
-console.log(Link)
-
 const App: React.FC = () => (
   <BrowserRouter>
     <Link to="/" style={{ textDecoration: 'none', color: 'black' }}>
