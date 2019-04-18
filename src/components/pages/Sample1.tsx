@@ -28,6 +28,7 @@ class Sample1 extends React.Component {
   public render() {
     return (
       <div>
+        <h2>Sample 1</h2>
         <video ref={this.videoRef} autoPlay playsInline />
       </div>
     )
