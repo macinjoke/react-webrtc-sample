@@ -13,6 +13,7 @@ module.exports = {
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
+    modules: [__dirname, 'node_modules'],
   },
   devServer: {
     contentBase: 'dist',
