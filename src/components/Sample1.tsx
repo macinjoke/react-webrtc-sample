@@ -6,18 +6,18 @@ interface Props {}
  * video要素を使いWebカメラの映像を写すだけ
  */
 class Sample1 extends React.Component {
-  private myRef: React.RefObject<HTMLVideoElement>
+  private videoRef: React.RefObject<HTMLVideoElement>
 
   private constructor(props: Props) {
     super(props)
-    this.myRef = React.createRef()
+    this.videoRef = React.createRef()
   }
   public componentDidMount(): void {
     navigator.mediaDevices
       .getUserMedia({ video: true })
       .then((mediaStream: MediaStream) => {
-        if (this.myRef.current) {
-          this.myRef.current.srcObject = mediaStream
+        if (this.videoRef.current) {
+          this.videoRef.current.srcObject = mediaStream
         }
       })
       .catch(error => {
@@ -28,7 +28,7 @@ class Sample1 extends React.Component {
   public render() {
     return (
       <div>
-        <video ref={this.myRef} autoPlay playsInline />
+        <video ref={this.videoRef} autoPlay playsInline />
       </div>
     )
   }
