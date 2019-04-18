@@ -3,7 +3,7 @@ import React from 'react'
 interface Props {}
 
 /**
- * video要素を使いWebカメラの映像を写すだけ
+ * just use a video element and display the video of Web camera.
  */
 class Sample1 extends React.Component {
   private videoRef: React.RefObject<HTMLVideoElement>
