@@ -8,7 +8,7 @@ interface Props {}
 class Sample1 extends React.Component {
   private videoRef: React.RefObject<HTMLVideoElement>
 
-  private constructor(props: Props) {
+  public constructor(props: Props) {
     super(props)
     this.videoRef = React.createRef()
   }
