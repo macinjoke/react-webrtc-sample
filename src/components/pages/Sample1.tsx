@@ -29,7 +29,12 @@ class Sample1 extends React.Component {
     return (
       <div>
         <h2>Sample 1</h2>
-        <video ref={this.videoRef} autoPlay playsInline />
+        <video
+          style={{ width: '320px', maxWidth: '100%' }}
+          ref={this.videoRef}
+          autoPlay
+          playsInline
+        />
       </div>
     )
   }
