@@ -24,7 +24,6 @@
     "project": "./tsconfig.json"
   },
   "rules": {
-    "no-console": 1,
     "func-style": ["error", "declaration", { "allowArrowFunctions": true }],
     "jsx-a11y/media-has-caption": 0,
     "@typescript-eslint/explicit-function-return-type": 0,
