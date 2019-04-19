@@ -56,7 +56,10 @@ class Sample2 extends React.Component<Props, State> {
           <button onClick={this.onClickStart} disabled={isStarting}>
             Start
           </button>
-          <button onClick={this.onClickCall} disabled={!isStarting || isCalling}>
+          <button
+            onClick={this.onClickCall}
+            disabled={!isStarting || isCalling}
+          >
             Call
           </button>
           <button onClick={this.onClickHangUp} disabled={!isCalling}>
@@ -121,17 +124,11 @@ class Sample2 extends React.Component<Props, State> {
     remotePeerConnection.ontrack = (event: RTCTrackEvent) => {
       console.log('ontrack')
       if (!this.remoteVideoRef.current) return
-      if (event.streams && event.streams[0]) {
-        const mediaStream = event.streams[0]
-        console.log(mediaStream)
-        this.remoteVideoRef.current.srcObject = mediaStream
-        this.setState({ remoteStream: mediaStream })
-      } else {
-        const remoteStream = new MediaStream()
-        remoteStream.addTrack(event.track)
-        this.remoteVideoRef.current.srcObject = remoteStream
-        this.setState({ remoteStream })
-      }
+      if (event.streams && event.streams[0]) return
+      const remoteStream = new MediaStream()
+      remoteStream.addTrack(event.track)
+      this.remoteVideoRef.current.srcObject = remoteStream
+      this.setState({ remoteStream })
     }
     localPeerConnection.addTrack(videoTracks[0])
     const offerDescription = await localPeerConnection.createOffer({
