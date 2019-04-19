@@ -3,6 +3,7 @@ import React from 'react'
 interface Props {}
 interface State {
   isStarting: boolean
+  isCalling: boolean
   localStream?: MediaStream
   remoteStream?: MediaStream
   localPeerConnection?: RTCPeerConnection
@@ -20,7 +21,7 @@ class Sample2 extends React.Component<Props, State> {
     super(props)
     this.localVideoRef = React.createRef()
     this.remoteVideoRef = React.createRef()
-    this.state = { isStarting: false }
+    this.state = { isStarting: false, isCalling: false }
   }
 
   public componentWillUnmount(): void {
@@ -35,7 +36,7 @@ class Sample2 extends React.Component<Props, State> {
   }
 
   public render() {
-    const { isStarting } = this.state
+    const { isStarting, isCalling } = this.state
     return (
       <div>
         <h2>Sample 2</h2>
@@ -55,8 +56,12 @@ class Sample2 extends React.Component<Props, State> {
           <button onClick={this.onClickStart} disabled={isStarting}>
             Start
           </button>
-          <button onClick={this.onClickCall}>Call</button>
-          <button onClick={this.onClickHangUp}>Hang Up</button>
+          <button onClick={this.onClickCall} disabled={!isStarting || isCalling}>
+            Call
+          </button>
+          <button onClick={this.onClickHangUp} disabled={!isCalling}>
+            Hang Up
+          </button>
         </div>
       </div>
     )
@@ -76,6 +81,7 @@ class Sample2 extends React.Component<Props, State> {
   private onClickCall = async () => {
     const { localStream } = this.state
     console.log('call')
+    this.setState({ isCalling: true })
     if (!localStream) return
     const videoTracks = localStream.getVideoTracks()
     const localPeerConnection = new RTCPeerConnection()
@@ -175,6 +181,7 @@ class Sample2 extends React.Component<Props, State> {
   private onClickHangUp = () => {
     console.log('hang up')
     const { localPeerConnection, remotePeerConnection } = this.state
+    this.setState({ isCalling: false })
     if (localPeerConnection) localPeerConnection.close()
     if (remotePeerConnection) remotePeerConnection.close()
   }
