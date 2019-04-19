@@ -51,22 +51,18 @@ class Sample2 extends React.Component<Props, State> {
     )
   }
 
-  private onClickStart = () => {
+  private onClickStart = async () => {
     console.log('start')
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((mediaStream: MediaStream) => {
-        if (this.localVideoRef.current) {
-          this.localVideoRef.current.srcObject = mediaStream
-          this.setState({ isStarting: true, localStream: mediaStream })
-        }
-      })
-      .catch(error => {
-        console.log(error)
-      })
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+    })
+    if (this.localVideoRef.current) {
+      this.localVideoRef.current.srcObject = mediaStream
+      this.setState({ isStarting: true, localStream: mediaStream })
+    }
   }
 
-  private onClickCall = () => {
+  private onClickCall = async () => {
     const { localStream } = this.state
     console.log('call')
     if (!localStream) return
@@ -121,51 +117,42 @@ class Sample2 extends React.Component<Props, State> {
       }
     }
     localPeerConnection.addTrack(videoTracks[0])
+    const offerDescription = await localPeerConnection.createOffer({
+      offerToReceiveVideo: true,
+    })
+
     localPeerConnection
-      .createOffer({ offerToReceiveVideo: true })
-      .then(description => {
-        localPeerConnection
-          .setLocalDescription(description)
-          .then(() => {
-            console.log('[localPeer]: setLocalDescription success')
-          })
-          .catch(error => {
-            console.log(error)
-          })
+      .setLocalDescription(offerDescription)
+      .then(() => {
+        console.log('[localPeer]: setLocalDescription success')
+      })
+      .catch(error => {
+        console.log(error)
+      })
 
-        remotePeerConnection
-          .setRemoteDescription(description)
-          .then(() => {
-            console.log('[remotePeer]: setRemoteDescription success')
-          })
-          .catch(error => {
-            console.log(error)
-          })
+    remotePeerConnection
+      .setRemoteDescription(offerDescription)
+      .then(() => {
+        console.log('[remotePeer]: setRemoteDescription success')
+      })
+      .catch(error => {
+        console.log(error)
+      })
 
-        remotePeerConnection
-          .createAnswer()
-          .then(description => {
-            remotePeerConnection
-              .setLocalDescription(description)
-              .then(() => {
-                console.log('[remotePeer]: setLocalDescription success')
-              })
-              .catch(error => {
-                console.log(error)
-              })
+    const answerDescription = await remotePeerConnection.createAnswer()
+    remotePeerConnection
+      .setLocalDescription(answerDescription)
+      .then(() => {
+        console.log('[remotePeer]: setLocalDescription success')
+      })
+      .catch(error => {
+        console.log(error)
+      })
 
-            localPeerConnection
-              .setRemoteDescription(description)
-              .then(() => {
-                console.log('[localPeer]: setRemoteDescription success')
-              })
-              .catch(error => {
-                console.log(error)
-              })
-          })
-          .catch(error => {
-            console.log(error)
-          })
+    localPeerConnection
+      .setRemoteDescription(answerDescription)
+      .then(() => {
+        console.log('[localPeer]: setRemoteDescription success')
       })
       .catch(error => {
         console.log(error)
