@@ -23,6 +23,17 @@ class Sample2 extends React.Component<Props, State> {
     this.state = { isStarting: false }
   }
 
+  public componentWillUnmount(): void {
+    const {
+      localPeerConnection,
+      remotePeerConnection,
+      localStream,
+    } = this.state
+    if (localPeerConnection) localPeerConnection.close()
+    if (remotePeerConnection) remotePeerConnection.close()
+    if (localStream) localStream.getTracks()[0].stop()
+  }
+
   public render() {
     const { isStarting } = this.state
     return (
@@ -163,6 +174,9 @@ class Sample2 extends React.Component<Props, State> {
 
   private onClickHangUp = () => {
     console.log('hang up')
+    const { localPeerConnection, remotePeerConnection } = this.state
+    if (localPeerConnection) localPeerConnection.close()
+    if (remotePeerConnection) remotePeerConnection.close()
   }
 }
 
