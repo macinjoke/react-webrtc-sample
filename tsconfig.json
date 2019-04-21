@@ -3,9 +3,8 @@
     "baseUrl": ".",
     "sourceMap": true,
     "target": "es5",
-    "module": "es2015",
+    "module": "commonjs",
     "jsx": "react",
-    "moduleResolution": "node",
     "lib": [
       "es2018",
       "dom"
