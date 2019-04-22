@@ -2,7 +2,7 @@ import React from 'react'
 
 interface Props {}
 interface State {
-  isStarting: boolean
+  isStarted: boolean
   isCalling: boolean
   localStream?: MediaStream
   remoteStream?: MediaStream
@@ -21,7 +21,7 @@ class Sample2 extends React.Component<Props, State> {
     super(props)
     this.localVideoRef = React.createRef()
     this.remoteVideoRef = React.createRef()
-    this.state = { isStarting: false, isCalling: false }
+    this.state = { isStarted: false, isCalling: false }
   }
 
   public componentWillUnmount(): void {
@@ -36,7 +36,7 @@ class Sample2 extends React.Component<Props, State> {
   }
 
   public render() {
-    const { isStarting, isCalling } = this.state
+    const { isStarted, isCalling } = this.state
     return (
       <div>
         <h2>Sample 2</h2>
@@ -53,12 +53,12 @@ class Sample2 extends React.Component<Props, State> {
           playsInline
         />
         <div>
-          <button onClick={this.onClickStart} disabled={isStarting}>
+          <button onClick={this.onClickStart} disabled={isStarted}>
             Start
           </button>
           <button
             onClick={this.onClickCall}
-            disabled={!isStarting || isCalling}
+            disabled={!isStarted || isCalling}
           >
             Call
           </button>
@@ -77,7 +77,7 @@ class Sample2 extends React.Component<Props, State> {
     })
     if (this.localVideoRef.current) {
       this.localVideoRef.current.srcObject = mediaStream
-      this.setState({ isStarting: true, localStream: mediaStream })
+      this.setState({ isStarted: true, localStream: mediaStream })
     }
   }
 

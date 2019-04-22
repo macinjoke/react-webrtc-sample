@@ -2,7 +2,7 @@ import React from 'react'
 
 interface Props {}
 interface State {
-  isStarting: boolean
+  isStarted: boolean
   sendChannel?: RTCDataChannel
   receiveChannel?: RTCDataChannel
   localPeerConnection?: RTCPeerConnection
@@ -20,7 +20,7 @@ class Sample3 extends React.Component<Props, State> {
     super(props)
     this.textareaSendRef = React.createRef()
     this.textareaReceiveRef = React.createRef()
-    this.state = { isStarting: false }
+    this.state = { isStarted: false }
   }
 
   public componentWillUnmount(): void {
@@ -37,24 +37,24 @@ class Sample3 extends React.Component<Props, State> {
   }
 
   public render() {
-    const { isStarting } = this.state
+    const { isStarted } = this.state
     return (
       <div>
         <h2>Sample 3</h2>
         <textarea
           ref={this.textareaSendRef}
           placeholder="Press Start, enter some text, then press Send."
-          disabled={!isStarting}
+          disabled={!isStarted}
         />
         <textarea ref={this.textareaReceiveRef} disabled />
         <div>
-          <button onClick={this.onClickStart} disabled={isStarting}>
+          <button onClick={this.onClickStart} disabled={isStarted}>
             Start
           </button>
-          <button onClick={this.onClickSend} disabled={!isStarting}>
+          <button onClick={this.onClickSend} disabled={!isStarted}>
             Send
           </button>
-          <button onClick={this.onClickStop} disabled={!isStarting}>
+          <button onClick={this.onClickStop} disabled={!isStarted}>
             Stop
           </button>
         </div>
@@ -86,7 +86,7 @@ class Sample3 extends React.Component<Props, State> {
       const textareaSend = this.textareaSendRef.current
       if (!textareaSend) return
       textareaSend.focus()
-      this.setState({ isStarting: true })
+      this.setState({ isStarted: true })
     }
     sendChannel.onclose = () => {
       console.log('Closed data channel with label: ' + sendChannel.label)
@@ -95,7 +95,7 @@ class Sample3 extends React.Component<Props, State> {
       if (!textareaSend || !textareaReceive) return
       textareaSend.value = ''
       textareaReceive.value = ''
-      this.setState({ isStarting: false })
+      this.setState({ isStarted: false })
     }
 
     const remotePeerConnection = new RTCPeerConnection()
