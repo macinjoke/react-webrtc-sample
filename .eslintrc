@@ -25,7 +25,7 @@
   },
   "rules": {
     "func-style": ["error", "declaration", { "allowArrowFunctions": true }],
-    "prefer-arrow-callback": "error",
+    "prefer-arrow-callback": 2,
     "jsx-a11y/media-has-caption": 0,
     "@typescript-eslint/explicit-function-return-type": 0,
     "@typescript-eslint/no-empty-interface": 0
