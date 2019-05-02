@@ -28,7 +28,8 @@
     "prefer-arrow-callback": 2,
     "jsx-a11y/media-has-caption": 0,
     "@typescript-eslint/explicit-function-return-type": 0,
-    "@typescript-eslint/no-empty-interface": 0
+    "@typescript-eslint/no-empty-interface": 0,
+    "@typescript-eslint/no-explicit-any": 0,
   },
   "settings": {
     "react": {

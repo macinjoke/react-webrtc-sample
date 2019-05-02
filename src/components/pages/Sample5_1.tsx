@@ -89,48 +89,44 @@ class Sample5_1 extends React.Component<Props, State> {
         isInitiator: true,
       })
     })
-
-    // class MEvent extends Event {
-    //   constructor()
-    // }
+    messageEventTarget.addEventListener('offer', async (e: any) => {
+      const message = e.detail
+      if (!this.state.isInitiator && !this.state.isStarted) {
+        await this.receiverStart()
+      }
+      if (!this.state.peerConnection) return
+      this.state.peerConnection.setRemoteDescription(
+        new RTCSessionDescription(message),
+      )
+      console.log('Sending answer to peer.')
+      const description = await this.state.peerConnection.createAnswer()
+      this.setLocalAndSendMessage(description)
+    })
+    messageEventTarget.addEventListener('answer', async (e: any) => {
+      const message = e.detail
+      if (!this.state.peerConnection) return
+      this.state.peerConnection.setRemoteDescription(
+        new RTCSessionDescription(message),
+      )
+    })
+    messageEventTarget.addEventListener('candidate', async (e: any) => {
+      const message = e.detail
+      if (!this.state.peerConnection || !this.state.isStarted) return
+      const candidate = new RTCIceCandidate({
+        sdpMLineIndex: message.label,
+        candidate: message.candidate,
+      })
+      this.state.peerConnection.addIceCandidate(candidate)
+    })
 
     socket.on('message', async (message: Message) => {
       console.log('Client received message:', message)
-      if (message === 'got user media') {
-        // this.initiatorStart()
-        messageEventTarget.dispatchEvent(new Event('got user media'))
-      } else if (message === 'bye') {
-        messageEventTarget.dispatchEvent(new Event('bye'))
-        // console.log('Session terminated.')
-        // if (this.state.peerConnection) this.state.peerConnection.close()
-        // this.setState({
-        //   isStarted: false,
-        //   isChannelReady: false,
-        //   isInitiator: true,
-        // })
-      } else if (message.type === 'offer') {
-        if (!this.state.isInitiator && !this.state.isStarted) {
-          await this.receiverStart()
-        }
-        if (!this.state.peerConnection) return
-        this.state.peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message),
+      if (typeof message === 'string') {
+        messageEventTarget.dispatchEvent(new Event(message))
+      } else {
+        messageEventTarget.dispatchEvent(
+          new CustomEvent(message.type, { detail: message }),
         )
-        console.log('Sending answer to peer.')
-        const description = await this.state.peerConnection.createAnswer()
-        this.setLocalAndSendMessage(description)
-      } else if (message.type === 'answer') {
-        if (!this.state.peerConnection) return
-        this.state.peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message),
-        )
-      } else if (message.type === 'candidate') {
-        if (!this.state.peerConnection || !this.state.isStarted) return
-        const candidate = new RTCIceCandidate({
-          sdpMLineIndex: message.label,
-          candidate: message.candidate,
-        })
-        this.state.peerConnection.addIceCandidate(candidate)
       }
     })
   }
