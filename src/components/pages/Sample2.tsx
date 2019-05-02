@@ -56,10 +56,7 @@ class Sample2 extends React.Component<Props, State> {
           <button onClick={this.onClickStart} disabled={isStarted}>
             Start
           </button>
-          <button
-            onClick={this.onClickCall}
-            disabled={!isStarted || isCalling}
-          >
+          <button onClick={this.onClickCall} disabled={!isStarted || isCalling}>
             Call
           </button>
           <button onClick={this.onClickHangUp} disabled={!isCalling}>
