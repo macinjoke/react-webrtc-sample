@@ -222,8 +222,8 @@ class Sample5_1 extends React.Component<Props, State> {
       const peerConnection = this.createPeer()
       if (!peerConnection) return
       console.log('Sending offer to peer')
-      const desciption = await peerConnection.createOffer()
-      this.setLocalAndSendMessage(desciption)
+      const description = await peerConnection.createOffer()
+      this.setLocalAndSendMessage(description)
     }
   }
 

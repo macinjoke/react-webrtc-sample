@@ -196,8 +196,8 @@ class Sample5 extends React.Component<Props, State> {
       console.log('isInitiator', isInitiator)
       if (isInitiator) {
         console.log('Sending offer to peer')
-        const desciption = await peerConnection.createOffer()
-        this.setLocalAndSendMessage(desciption)
+        const description = await peerConnection.createOffer()
+        this.setLocalAndSendMessage(description)
       }
     }
   }
