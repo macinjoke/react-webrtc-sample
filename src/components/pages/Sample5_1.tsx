@@ -104,8 +104,8 @@ class Sample5_1 extends React.Component<Props, State> {
         this.state.peerConnection.setRemoteDescription(
           new RTCSessionDescription(message),
         )
-      } else if (message.type === 'candidate' && this.state.isStarted) {
-        if (!this.state.peerConnection) return
+      } else if (message.type === 'candidate') {
+        if (!this.state.peerConnection || !this.state.isStarted) return
         const candidate = new RTCIceCandidate({
           sdpMLineIndex: message.label,
           candidate: message.candidate,
