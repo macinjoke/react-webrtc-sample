@@ -76,18 +76,38 @@ class Sample5_1 extends React.Component<Props, State> {
       console.log(text)
     })
 
+    const messageEventTarget = new EventTarget()
+    messageEventTarget.addEventListener('got user media', () => {
+      this.initiatorStart()
+    })
+    messageEventTarget.addEventListener('bye', () => {
+      console.log('Session terminated.')
+      if (this.state.peerConnection) this.state.peerConnection.close()
+      this.setState({
+        isStarted: false,
+        isChannelReady: false,
+        isInitiator: true,
+      })
+    })
+
+    // class MEvent extends Event {
+    //   constructor()
+    // }
+
     socket.on('message', async (message: Message) => {
       console.log('Client received message:', message)
       if (message === 'got user media') {
-        this.initiatorStart()
+        // this.initiatorStart()
+        messageEventTarget.dispatchEvent(new Event('got user media'))
       } else if (message === 'bye') {
-        console.log('Session terminated.')
-        if (this.state.peerConnection) this.state.peerConnection.close()
-        this.setState({
-          isStarted: false,
-          isChannelReady: false,
-          isInitiator: true,
-        })
+        messageEventTarget.dispatchEvent(new Event('bye'))
+        // console.log('Session terminated.')
+        // if (this.state.peerConnection) this.state.peerConnection.close()
+        // this.setState({
+        //   isStarted: false,
+        //   isChannelReady: false,
+        //   isInitiator: true,
+        // })
       } else if (message.type === 'offer') {
         if (!this.state.isInitiator && !this.state.isStarted) {
           await this.receiverStart()
