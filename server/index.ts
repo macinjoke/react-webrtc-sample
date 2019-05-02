@@ -51,4 +51,22 @@ io.sockets.on('connection', socket => {
       })
     }
   })
+
+  socket.on('bye', () => {
+    console.log('received bye')
+  })
+
+  socket.on('connect', () => {
+    console.log('connect')
+  })
+
+  socket.on('disconnect', () => {
+    console.log(`[disconnect] ${socket.id}`)
+    console.log(Object.keys(io.sockets.connected))
+  })
+})
+
+io.sockets.on('connect', socket => {
+  console.log(`[connect] ${socket.id}`)
+  console.log(Object.keys(io.sockets.connected))
 })
