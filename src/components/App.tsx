@@ -5,6 +5,7 @@ import Sample2 from './pages/Sample2'
 import Sample3 from './pages/Sample3'
 import Sample4 from './pages/Sample4'
 import Sample5 from './pages/Sample5_1'
+import Sample6 from './pages/Sample6'
 import Top from './pages/Top'
 
 const App: React.FC = () => (
@@ -28,6 +29,9 @@ const App: React.FC = () => (
       <li>
         <Link to="/sample5">sample5</Link>
       </li>
+      <li>
+        <Link to="/sample6">sample6</Link>
+      </li>
     </ul>
     <Route exact path="/" component={Top} />
     <Route path="/sample1" component={Sample1} />
@@ -35,6 +39,7 @@ const App: React.FC = () => (
     <Route path="/sample3" component={Sample3} />
     <Route path="/sample4" component={Sample4} />
     <Route path="/sample5" component={Sample5} />
+    <Route path="/sample6" component={Sample6} />
   </BrowserRouter>
 )
 
