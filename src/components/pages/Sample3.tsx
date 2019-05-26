@@ -3,10 +3,6 @@ import React from 'react'
 interface Props {}
 interface State {
   isStarted: boolean
-  sendChannel?: RTCDataChannel
-  receiveChannel?: RTCDataChannel
-  localPeerConnection?: RTCPeerConnection
-  remotePeerConnection?: RTCPeerConnection
 }
 
 /**
@@ -15,6 +11,10 @@ interface State {
 class Sample3 extends React.Component<Props, State> {
   private textareaSendRef: React.RefObject<HTMLTextAreaElement>
   private textareaReceiveRef: React.RefObject<HTMLTextAreaElement>
+  private sendChannel?: RTCDataChannel
+  private receiveChannel?: RTCDataChannel
+  private localPeerConnection?: RTCPeerConnection
+  private remotePeerConnection?: RTCPeerConnection
 
   public constructor(props: Props) {
     super(props)
@@ -24,16 +24,10 @@ class Sample3 extends React.Component<Props, State> {
   }
 
   public componentWillUnmount(): void {
-    const {
-      localPeerConnection,
-      remotePeerConnection,
-      sendChannel,
-      receiveChannel,
-    } = this.state
-    if (sendChannel) sendChannel.close()
-    if (receiveChannel) receiveChannel.close()
-    if (localPeerConnection) localPeerConnection.close()
-    if (remotePeerConnection) remotePeerConnection.close()
+    if (this.sendChannel) this.sendChannel.close()
+    if (this.receiveChannel) this.receiveChannel.close()
+    if (this.localPeerConnection) this.localPeerConnection.close()
+    if (this.remotePeerConnection) this.remotePeerConnection.close()
   }
 
   public render() {
@@ -64,15 +58,14 @@ class Sample3 extends React.Component<Props, State> {
 
   private onClickStart = async () => {
     console.log('start')
-    const localPeerConnection = new RTCPeerConnection()
-    const sendChannel = localPeerConnection.createDataChannel('sendDataChannel')
+    this.localPeerConnection = new RTCPeerConnection()
+    this.sendChannel = this.localPeerConnection.createDataChannel('sendDataChannel')
 
-    localPeerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
-      const { remotePeerConnection } = this.state
-      if (!remotePeerConnection) return
+    this.localPeerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
+      if (!this.remotePeerConnection) return
       if (event.candidate) {
         console.log(event.candidate.candidate)
-        remotePeerConnection
+        this.remotePeerConnection
           .addIceCandidate(event.candidate)
           .then(() => {
             console.log('[remotePeer]: addIceCandidate success.')
@@ -82,14 +75,15 @@ class Sample3 extends React.Component<Props, State> {
           })
       }
     }
-    sendChannel.onopen = () => {
+    this.sendChannel.onopen = () => {
       const textareaSend = this.textareaSendRef.current
       if (!textareaSend) return
       textareaSend.focus()
       this.setState({ isStarted: true })
     }
-    sendChannel.onclose = () => {
-      console.log('Closed data channel with label: ' + sendChannel.label)
+    this.sendChannel.onclose = () => {
+      if (!this.sendChannel) return
+      console.log('Closed data channel with label: ' + this.sendChannel.label)
       const textareaSend = this.textareaSendRef.current
       const textareaReceive = this.textareaReceiveRef.current
       if (!textareaSend || !textareaReceive) return
@@ -98,16 +92,15 @@ class Sample3 extends React.Component<Props, State> {
       this.setState({ isStarted: false })
     }
 
-    const remotePeerConnection = new RTCPeerConnection()
+    this.remotePeerConnection = new RTCPeerConnection()
 
-    remotePeerConnection.onicecandidate = (
+    this.remotePeerConnection.onicecandidate = (
       event: RTCPeerConnectionIceEvent,
     ) => {
-      const { localPeerConnection } = this.state
-      if (!localPeerConnection) return
+      if (!this.localPeerConnection) return
       if (event.candidate) {
         console.log(event.candidate.candidate)
-        localPeerConnection
+        this.localPeerConnection
           .addIceCandidate(event.candidate)
           .then(() => {
             console.log('[remotePeer]: addIceCandidate success.')
@@ -117,54 +110,47 @@ class Sample3 extends React.Component<Props, State> {
           })
       }
     }
-    remotePeerConnection.ondatachannel = (event: RTCDataChannelEvent) => {
-      const receiveChannel = event.channel
-      receiveChannel.onmessage = (event: MessageEvent) => {
+    this.remotePeerConnection.ondatachannel = (event: RTCDataChannelEvent) => {
+      this.receiveChannel = event.channel
+      this.receiveChannel.onmessage = (event: MessageEvent) => {
         console.log(`Received Message: ${event.data}`)
         const textareaReceive = this.textareaReceiveRef.current
         if (textareaReceive) textareaReceive.value = event.data
       }
-      receiveChannel.onclose = () => {
-        console.log(`Closed data channel with label: ${receiveChannel.label}`)
+      this.receiveChannel.onclose = () => {
+        if (!this.receiveChannel) return
+        console.log(
+          `Closed data channel with label: ${this.receiveChannel.label}`,
+        )
       }
-      this.setState({ receiveChannel })
     }
 
-    const offerDescription = await localPeerConnection.createOffer()
-    localPeerConnection.setLocalDescription(offerDescription)
+    const offerDescription = await this.localPeerConnection.createOffer()
+    this.localPeerConnection.setLocalDescription(offerDescription)
     console.log('Offer from localPeerConnection \n' + offerDescription.sdp)
-    remotePeerConnection.setRemoteDescription(offerDescription)
-    const answerDescription = await remotePeerConnection.createAnswer()
+    this.remotePeerConnection.setRemoteDescription(offerDescription)
+    const answerDescription = await this.remotePeerConnection.createAnswer()
 
-    remotePeerConnection.setLocalDescription(answerDescription)
+    this.remotePeerConnection.setLocalDescription(answerDescription)
     console.log('Answer from remotePeerConnection \n' + answerDescription.sdp)
-    localPeerConnection.setRemoteDescription(answerDescription)
-
-    this.setState({ sendChannel, localPeerConnection, remotePeerConnection })
+    this.localPeerConnection.setRemoteDescription(answerDescription)
   }
 
   private onClickSend = async () => {
     console.log('send')
-    const { sendChannel } = this.state
     const textareaSend = this.textareaSendRef.current
-    if (!textareaSend || !sendChannel) return
+    if (!textareaSend || !this.sendChannel) return
     const data = textareaSend.value
-    sendChannel.send(data)
+    this.sendChannel.send(data)
     console.log('Sent Data: ' + data)
   }
 
   private onClickStop = () => {
-    const {
-      sendChannel,
-      receiveChannel,
-      localPeerConnection,
-      remotePeerConnection,
-    } = this.state
     console.log('stop')
-    if (sendChannel) sendChannel.close()
-    if (receiveChannel) receiveChannel.close()
-    if (localPeerConnection) localPeerConnection.close()
-    if (remotePeerConnection) remotePeerConnection.close()
+    if (this.sendChannel) this.sendChannel.close()
+    if (this.receiveChannel) this.receiveChannel.close()
+    if (this.localPeerConnection) this.localPeerConnection.close()
+    if (this.remotePeerConnection) this.remotePeerConnection.close()
   }
 }
 
