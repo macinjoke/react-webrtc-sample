@@ -4,10 +4,6 @@ interface Props {}
 interface State {
   isStarted: boolean
   isCalling: boolean
-  localStream?: MediaStream
-  remoteStream?: MediaStream
-  localPeerConnection?: RTCPeerConnection
-  remotePeerConnection?: RTCPeerConnection
 }
 
 /**
@@ -16,6 +12,10 @@ interface State {
 class Sample2 extends React.Component<Props, State> {
   private localVideoRef: React.RefObject<HTMLVideoElement>
   private remoteVideoRef: React.RefObject<HTMLVideoElement>
+  private localStream?: MediaStream
+  private remoteStream?: MediaStream
+  private localPeerConnection?: RTCPeerConnection
+  private remotePeerConnection?: RTCPeerConnection
 
   public constructor(props: Props) {
     super(props)
@@ -25,14 +25,9 @@ class Sample2 extends React.Component<Props, State> {
   }
 
   public componentWillUnmount(): void {
-    const {
-      localPeerConnection,
-      remotePeerConnection,
-      localStream,
-    } = this.state
-    if (localPeerConnection) localPeerConnection.close()
-    if (remotePeerConnection) remotePeerConnection.close()
-    if (localStream) localStream.getTracks()[0].stop()
+    if (this.localPeerConnection) this.localPeerConnection.close()
+    if (this.remotePeerConnection) this.remotePeerConnection.close()
+    if (this.localStream) this.localStream.getTracks()[0].stop()
   }
 
   public render() {
@@ -69,28 +64,28 @@ class Sample2 extends React.Component<Props, State> {
 
   private onClickStart = async () => {
     console.log('start')
-    const mediaStream = await navigator.mediaDevices.getUserMedia({
+    this.localStream = await navigator.mediaDevices.getUserMedia({
       video: true,
     })
     if (this.localVideoRef.current) {
-      this.localVideoRef.current.srcObject = mediaStream
-      this.setState({ isStarted: true, localStream: mediaStream })
+      this.localVideoRef.current.srcObject = this.localStream
+      this.setState({ isStarted: true })
     }
   }
 
   private onClickCall = async () => {
-    const { localStream } = this.state
     console.log('call')
     this.setState({ isCalling: true })
-    if (!localStream) return
-    const videoTracks = localStream.getVideoTracks()
-    const localPeerConnection = new RTCPeerConnection()
-    localPeerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
+    if (!this.localStream) return
+    const videoTracks = this.localStream.getVideoTracks()
+    this.localPeerConnection = new RTCPeerConnection()
+    this.localPeerConnection.onicecandidate = (
+      event: RTCPeerConnectionIceEvent,
+    ) => {
       const iceCandidate = event.candidate
       if (iceCandidate) {
-        const { remotePeerConnection } = this.state
-        if (!remotePeerConnection) return
-        remotePeerConnection
+        if (!this.remotePeerConnection) return
+        this.remotePeerConnection
           .addIceCandidate(iceCandidate)
           .then(() => {
             console.log('[remotePeer]: addIceCandidate success.')
@@ -100,15 +95,14 @@ class Sample2 extends React.Component<Props, State> {
           })
       }
     }
-    const remotePeerConnection = new RTCPeerConnection()
-    remotePeerConnection.onicecandidate = (
+    this.remotePeerConnection = new RTCPeerConnection()
+    this.remotePeerConnection.onicecandidate = (
       event: RTCPeerConnectionIceEvent,
     ) => {
       const iceCandidate = event.candidate
       if (iceCandidate) {
-        const { localPeerConnection } = this.state
-        if (!localPeerConnection) return
-        localPeerConnection
+        if (!this.localPeerConnection) return
+        this.localPeerConnection
           .addIceCandidate(iceCandidate)
           .then(() => {
             console.log('[localPeer]: addIceCandidate success.')
@@ -118,21 +112,20 @@ class Sample2 extends React.Component<Props, State> {
           })
       }
     }
-    remotePeerConnection.ontrack = (event: RTCTrackEvent) => {
+    this.remotePeerConnection.ontrack = (event: RTCTrackEvent) => {
       console.log('ontrack')
       if (!this.remoteVideoRef.current) return
       if (event.streams && event.streams[0]) return
-      const remoteStream = new MediaStream()
-      remoteStream.addTrack(event.track)
-      this.remoteVideoRef.current.srcObject = remoteStream
-      this.setState({ remoteStream })
+      this.remoteStream = new MediaStream()
+      this.remoteStream.addTrack(event.track)
+      this.remoteVideoRef.current.srcObject = this.remoteStream
     }
-    localPeerConnection.addTrack(videoTracks[0])
-    const offerDescription = await localPeerConnection.createOffer({
+    this.localPeerConnection.addTrack(videoTracks[0])
+    const offerDescription = await this.localPeerConnection.createOffer({
       offerToReceiveVideo: true,
     })
 
-    localPeerConnection
+    this.localPeerConnection
       .setLocalDescription(offerDescription)
       .then(() => {
         console.log('[localPeer]: setLocalDescription success')
@@ -141,7 +134,7 @@ class Sample2 extends React.Component<Props, State> {
         console.log(error)
       })
 
-    remotePeerConnection
+    this.remotePeerConnection
       .setRemoteDescription(offerDescription)
       .then(() => {
         console.log('[remotePeer]: setRemoteDescription success')
@@ -150,8 +143,8 @@ class Sample2 extends React.Component<Props, State> {
         console.log(error)
       })
 
-    const answerDescription = await remotePeerConnection.createAnswer()
-    remotePeerConnection
+    const answerDescription = await this.remotePeerConnection.createAnswer()
+    this.remotePeerConnection
       .setLocalDescription(answerDescription)
       .then(() => {
         console.log('[remotePeer]: setLocalDescription success')
@@ -160,7 +153,7 @@ class Sample2 extends React.Component<Props, State> {
         console.log(error)
       })
 
-    localPeerConnection
+    this.localPeerConnection
       .setRemoteDescription(answerDescription)
       .then(() => {
         console.log('[localPeer]: setRemoteDescription success')
@@ -168,16 +161,13 @@ class Sample2 extends React.Component<Props, State> {
       .catch(error => {
         console.log(error)
       })
-
-    this.setState({ localPeerConnection, remotePeerConnection })
   }
 
   private onClickHangUp = () => {
     console.log('hang up')
-    const { localPeerConnection, remotePeerConnection } = this.state
     this.setState({ isCalling: false })
-    if (localPeerConnection) localPeerConnection.close()
-    if (remotePeerConnection) remotePeerConnection.close()
+    if (this.localPeerConnection) this.localPeerConnection.close()
+    if (this.remotePeerConnection) this.remotePeerConnection.close()
   }
 }
 
