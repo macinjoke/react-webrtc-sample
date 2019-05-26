@@ -24,7 +24,7 @@ type TextMessage = 'got user media' | 'bye'
 type Message = TextMessage | RTCSessionDescriptionInit | CandidateMessage
 
 /**
- * Signaling and Peer Connection video
+ * Take a photo and share it via a data channel.
  */
 class Sample6 extends React.Component<Props, State> {
   private localVideoRef: React.RefObject<HTMLVideoElement>
