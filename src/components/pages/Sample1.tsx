@@ -1,33 +1,29 @@
 import React from 'react'
 
 interface Props {}
-interface State {
-  mediaStream?: MediaStream
-}
 
 /**
  * just use a video element and display the video of Web camera.
  */
-class Sample1 extends React.Component<Props, State> {
+class Sample1 extends React.Component<Props> {
   private videoRef: React.RefObject<HTMLVideoElement>
+  private mediaStream?: MediaStream
 
   public constructor(props: Props) {
     super(props)
     this.videoRef = React.createRef()
   }
   public async componentDidMount() {
-    const mediaStream = await navigator.mediaDevices.getUserMedia({
+    this.mediaStream = await navigator.mediaDevices.getUserMedia({
       video: true,
     })
     if (this.videoRef.current) {
-      this.videoRef.current.srcObject = mediaStream
-      this.setState({ mediaStream })
+      this.videoRef.current.srcObject = this.mediaStream
     }
   }
 
   public componentWillUnmount(): void {
-    const { mediaStream } = this.state
-    if (mediaStream) mediaStream.getTracks()[0].stop()
+    if (this.mediaStream) this.mediaStream.getTracks()[0].stop()
   }
 
   public render() {
