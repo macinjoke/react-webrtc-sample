@@ -31,6 +31,7 @@ io.sockets.on('connection', socket => {
       socket.emit('created', room, socket.id)
     } else if (numClients === 1) {
       log('Client ID ' + socket.id + ' joined room ' + room)
+      io.sockets.in(room).emit('join', room)
       socket.join(room)
       socket.emit('joined', room, socket.id)
       io.sockets.in(room).emit('ready')
