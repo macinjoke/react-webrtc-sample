@@ -122,9 +122,9 @@ class Sample5 extends React.Component<Props, State> {
       this.localVideoRef.current.srcObject = this.localStream
       this.sendMessage('got user media')
     }
-    window.onbeforeunload = () => {
+    window.addEventListener('beforeunload', () => {
       this.sendMessage('bye')
-    }
+    })
   }
 
   public async componentWillUnmount() {
@@ -164,29 +164,30 @@ class Sample5 extends React.Component<Props, State> {
     if (!isStarted && this.localStream && isChannelReady) {
       console.log('>>>>>> creating peer connection')
       this.peerConnection = new RTCPeerConnection()
-      this.peerConnection.onicecandidate = (
-        event: RTCPeerConnectionIceEvent,
-      ) => {
-        console.log('icecandidate event: ', event)
-        if (event.candidate) {
-          this.sendMessage({
-            type: 'candidate',
-            label: event.candidate.sdpMLineIndex,
-            id: event.candidate.sdpMid,
-            candidate: event.candidate.candidate,
-          })
-        } else {
-          console.log('End of candidates.')
-        }
-      }
-      this.peerConnection.ontrack = (event: RTCTrackEvent) => {
+      this.peerConnection.addEventListener(
+        'icecandidate',
+        (event: RTCPeerConnectionIceEvent) => {
+          console.log('icecandidate event: ', event)
+          if (event.candidate) {
+            this.sendMessage({
+              type: 'candidate',
+              label: event.candidate.sdpMLineIndex,
+              id: event.candidate.sdpMid,
+              candidate: event.candidate.candidate,
+            })
+          } else {
+            console.log('End of candidates.')
+          }
+        },
+      )
+      this.peerConnection.addEventListener('track', (event: RTCTrackEvent) => {
         console.log('ontrack')
         if (!this.remoteVideoRef.current) return
         if (event.streams && event.streams[0]) return
         this.remoteStream = new MediaStream()
         this.remoteStream.addTrack(event.track)
         this.remoteVideoRef.current.srcObject = this.remoteStream
-      }
+      })
       console.log('Created RTCPeerConnnection')
       this.peerConnection.addTrack(this.localStream.getVideoTracks()[0])
       this.setState({ isStarted: true })
