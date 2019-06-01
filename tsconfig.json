@@ -20,5 +20,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "pretty": true,
-  }
+  },
+  "include": [
+    "src/**/*"
+  ]
 }
