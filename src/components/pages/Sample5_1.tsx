@@ -139,9 +139,9 @@ class Sample5_1 extends React.Component<Props, State> {
       this.localVideoRef.current.srcObject = this.localStream
       this.sendMessage('got user media')
     }
-    window.onbeforeunload = () => {
+    window.addEventListener('beforeunload', () => {
       this.sendMessage('bye')
-    }
+    })
   }
 
   public async componentWillUnmount() {
@@ -202,8 +202,8 @@ class Sample5_1 extends React.Component<Props, State> {
     console.log('>>>>>> creating peer connection')
     if (!this.localStream) return
     this.peerConnection = new RTCPeerConnection()
-    this.peerConnection.onicecandidate = this.onicecandidate
-    this.peerConnection.ontrack = this.ontrack
+    this.peerConnection.addEventListener('icecandidate', this.onicecandidate)
+    this.peerConnection.addEventListener('track', this.ontrack)
     this.peerConnection.addTrack(this.localStream.getVideoTracks()[0])
     this.setState({ isStarted: true })
     return this.peerConnection
