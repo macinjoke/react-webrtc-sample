@@ -6,10 +6,6 @@ interface State {
   isInitiator: boolean
   isStarted: boolean
   isChannelReady: boolean
-  socket?: SocketIOClient.Socket
-  localStream?: MediaStream
-  remoteStream?: MediaStream
-  peerConnection?: RTCPeerConnection
 }
 
 interface CandidateMessage {
@@ -30,49 +26,52 @@ type Message = TextMessage | RTCSessionDescriptionInit | CandidateMessage
 class Sample5_1 extends React.Component<Props, State> {
   private localVideoRef: React.RefObject<HTMLVideoElement>
   private remoteVideoRef: React.RefObject<HTMLVideoElement>
+  private socket?: SocketIOClient.Socket
+  private localStream?: MediaStream
+  private remoteStream?: MediaStream
+  private peerConnection?: RTCPeerConnection
 
   public constructor(props: Props) {
     super(props)
     this.localVideoRef = React.createRef()
     this.remoteVideoRef = React.createRef()
-    const socket = io.connect('http://localhost:8000')
+    this.socket = io.connect('http://localhost:8000')
     this.state = {
       isInitiator: false,
       isStarted: false,
       isChannelReady: false,
-      socket,
     }
     const room = 'foo' as string
     if (room !== '') {
       console.log('Asking to join room ' + room)
-      socket.emit('create or join', room)
+      this.socket.emit('create or join', room)
     }
 
-    socket.on('created', (room: string, clientId: string) => {
+    this.socket.on('created', (room: string, clientId: string) => {
       console.log(room, clientId)
       this.setState({ isInitiator: true })
     })
 
-    socket.on('full', (room: string) => {
+    this.socket.on('full', (room: string) => {
       console.log('Room ' + room + ' is full :^(')
     })
 
-    socket.on('ipaddr', (ipaddr: string) => {
+    this.socket.on('ipaddr', (ipaddr: string) => {
       console.log('Server IP address is ' + ipaddr)
     })
 
-    socket.on('join', (room: string) => {
+    this.socket.on('join', (room: string) => {
       console.log('Another peer made a request to join room ' + room)
       console.log('This peer is the initiator of room ' + room + '!')
       this.setState({ isChannelReady: true })
     })
 
-    socket.on('joined', (room: string, clientId: string) => {
+    this.socket.on('joined', (room: string, clientId: string) => {
       console.log(room, clientId)
       this.setState({ isChannelReady: true })
     })
 
-    socket.on('log', (text: string) => {
+    this.socket.on('log', (text: string) => {
       console.log(text)
     })
 
@@ -82,7 +81,7 @@ class Sample5_1 extends React.Component<Props, State> {
     })
     messageEventTarget.addEventListener('bye', () => {
       console.log('Session terminated.')
-      if (this.state.peerConnection) this.state.peerConnection.close()
+      if (this.peerConnection) this.peerConnection.close()
       this.setState({
         isStarted: false,
         isChannelReady: false,
@@ -94,32 +93,32 @@ class Sample5_1 extends React.Component<Props, State> {
       if (!this.state.isInitiator && !this.state.isStarted) {
         await this.receiverStart()
       }
-      if (!this.state.peerConnection) return
-      this.state.peerConnection.setRemoteDescription(
+      if (!this.peerConnection) return
+      this.peerConnection.setRemoteDescription(
         new RTCSessionDescription(message),
       )
       console.log('Sending answer to peer.')
-      const description = await this.state.peerConnection.createAnswer()
+      const description = await this.peerConnection.createAnswer()
       this.setLocalAndSendMessage(description)
     })
     messageEventTarget.addEventListener('answer', async (e: any) => {
       const message = e.detail
-      if (!this.state.peerConnection) return
-      this.state.peerConnection.setRemoteDescription(
+      if (!this.peerConnection) return
+      this.peerConnection.setRemoteDescription(
         new RTCSessionDescription(message),
       )
     })
     messageEventTarget.addEventListener('candidate', async (e: any) => {
       const message = e.detail
-      if (!this.state.peerConnection || !this.state.isStarted) return
+      if (!this.peerConnection || !this.state.isStarted) return
       const candidate = new RTCIceCandidate({
         sdpMLineIndex: message.label,
         candidate: message.candidate,
       })
-      this.state.peerConnection.addIceCandidate(candidate)
+      this.peerConnection.addIceCandidate(candidate)
     })
 
-    socket.on('message', async (message: Message) => {
+    this.socket.on('message', async (message: Message) => {
       if (typeof message === 'string') {
         messageEventTarget.dispatchEvent(new Event(message))
       } else {
@@ -133,12 +132,11 @@ class Sample5_1 extends React.Component<Props, State> {
   public async componentDidMount() {
     console.log(`hostname: ${location.hostname}`)
 
-    const localStream = await navigator.mediaDevices.getUserMedia({
+    this.localStream = await navigator.mediaDevices.getUserMedia({
       video: true,
     })
     if (this.localVideoRef.current) {
-      this.localVideoRef.current.srcObject = localStream
-      this.setState({ localStream: localStream })
+      this.localVideoRef.current.srcObject = this.localStream
       this.sendMessage('got user media')
     }
     window.onbeforeunload = () => {
@@ -147,11 +145,10 @@ class Sample5_1 extends React.Component<Props, State> {
   }
 
   public async componentWillUnmount() {
-    const { peerConnection, localStream, socket } = this.state
-    if (peerConnection) peerConnection.close()
-    if (localStream) localStream.getTracks()[0].stop()
+    if (this.peerConnection) this.peerConnection.close()
+    if (this.localStream) this.localStream.getTracks()[0].stop()
     this.sendMessage('bye')
-    if (socket) socket.close()
+    if (this.socket) this.socket.close()
   }
 
   public render() {
@@ -196,32 +193,30 @@ class Sample5_1 extends React.Component<Props, State> {
     console.log('ontrack')
     if (!this.remoteVideoRef.current) return
     if (event.streams && event.streams[0]) return
-    const remoteStream = new MediaStream()
-    remoteStream.addTrack(event.track)
-    this.remoteVideoRef.current.srcObject = remoteStream
-    this.setState({ remoteStream })
+    this.remoteStream = new MediaStream()
+    this.remoteStream.addTrack(event.track)
+    this.remoteVideoRef.current.srcObject = this.remoteStream
   }
 
   private createPeer = (): RTCPeerConnection | undefined => {
-    const { localStream } = this.state
     console.log('>>>>>> creating peer connection')
-    if (!localStream) return
-    const peerConnection = new RTCPeerConnection()
-    peerConnection.onicecandidate = this.onicecandidate
-    peerConnection.ontrack = this.ontrack
-    peerConnection.addTrack(localStream.getVideoTracks()[0])
-    this.setState({ peerConnection, isStarted: true })
-    return peerConnection
+    if (!this.localStream) return
+    this.peerConnection = new RTCPeerConnection()
+    this.peerConnection.onicecandidate = this.onicecandidate
+    this.peerConnection.ontrack = this.ontrack
+    this.peerConnection.addTrack(this.localStream.getVideoTracks()[0])
+    this.setState({ isStarted: true })
+    return this.peerConnection
   }
 
   private initiatorStart = async () => {
     const { isStarted, isChannelReady } = this.state
     console.log('>>>>>>> initiatorStart() ', isStarted, isChannelReady)
     if (!isStarted && isChannelReady) {
-      const peerConnection = this.createPeer()
-      if (!peerConnection) return
+      this.peerConnection = this.createPeer()
+      if (!this.peerConnection) return
       console.log('Sending offer to peer')
-      const description = await peerConnection.createOffer()
+      const description = await this.peerConnection.createOffer()
       this.setLocalAndSendMessage(description)
     }
   }
@@ -235,16 +230,14 @@ class Sample5_1 extends React.Component<Props, State> {
   }
 
   private sendMessage = (message: Message) => {
-    const { socket } = this.state
-    if (!socket) return
+    if (!this.socket) return
     console.log('Client sending message: ', message)
-    socket.emit('message', message)
+    this.socket.emit('message', message)
   }
 
   private setLocalAndSendMessage = (description: RTCSessionDescriptionInit) => {
-    const { peerConnection } = this.state
-    if (!peerConnection) return
-    peerConnection.setLocalDescription(description)
+    if (!this.peerConnection) return
+    this.peerConnection.setLocalDescription(description)
     this.sendMessage(description)
   }
 }
