@@ -10,13 +10,10 @@ interface State {
  * communicate to a signaling server
  */
 class Sample4 extends React.Component<Props, State> {
-  private socket?: SocketIOClient.Socket
+  private socket: SocketIOClient.Socket
   public constructor(props: Props) {
     super(props)
     this.state = { isInitiator: false }
-  }
-
-  public componentDidMount(): void {
     this.socket = io.connect('http://localhost:8000')
     const room = prompt('Enter room name:')
     if (room !== '') {
@@ -48,7 +45,7 @@ class Sample4 extends React.Component<Props, State> {
   }
 
   public async componentWillUnmount() {
-    if (this.socket) this.socket.close()
+    this.socket.close()
   }
 
   public render() {
