@@ -6,6 +6,7 @@ interface Props {}
 interface State {
   isInitiator: boolean
   isStarted: boolean
+  isDataChannelOpen: boolean
 }
 
 interface CandidateMessage {
@@ -43,6 +44,7 @@ class Sample6 extends React.Component<Props, State> {
     this.state = {
       isInitiator: false,
       isStarted: false,
+      isDataChannelOpen: false,
     }
     const room = 'foo' as string
     if (room !== '') {
@@ -148,27 +150,13 @@ class Sample6 extends React.Component<Props, State> {
     this.socket.close()
   }
 
-  // public shouldComponentUpdate(
-  //   nextProps: Readonly<Props>,
-  //   nextState: Readonly<State>,
-  // ): boolean {
-  //   console.log(nextProps, nextState)
-  //   if (!shallowEqual(nextState, this.state)) return true
-  //   const prevDataChannel = this.state.dataChannel
-  //   const nextDataChannel = nextState.dataChannel
-  //   if (prevDataChannel && nextDataChannel) {
-  //     if (prevDataChannel.readyState !== nextDataChannel.readyState) return true
-  //   }
-  //   return false
-  // }
-
   public render() {
-    const { isInitiator } = this.state
+    const { isInitiator, isDataChannelOpen } = this.state
     return (
       <div>
         <h2>Sample 6</h2>
         <p>isInitiator: {String(isInitiator)}</p>
-        <p>dataChannel.readyState: {this.dataChannel && this.dataChannel.readyState}</p>
+        <p>dataChannel.readyState: {isDataChannelOpen ? 'open' : 'close'}</p>
         <video
           ref={this.localVideoRef}
           style={{ width: '320px', maxWidth: '100%' }}
@@ -210,7 +198,12 @@ class Sample6 extends React.Component<Props, State> {
     if (!this.canvasContext || !canvas) return
     const CHUNK_LEN = 64000
     console.log('width and height ', canvas.width, canvas.height)
-    const img = this.canvasContext.getImageData(0, 0, canvas.width, canvas.height)
+    const img = this.canvasContext.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    )
     const len = img.data.byteLength as any
     const n = (len / CHUNK_LEN) | 0
 
@@ -291,11 +284,11 @@ class Sample6 extends React.Component<Props, State> {
     if (!this.dataChannel) return
     this.dataChannel.onopen = () => {
       console.log('CHANNEL opened!')
-      // TODO
+      this.setState({ isDataChannelOpen: true })
     }
     this.dataChannel.onclose = () => {
       console.log('CHANNEL closed!')
-      // TODO
+      this.setState({ isDataChannelOpen: false })
     }
     this.dataChannel.onmessage = event => {
       if (typeof event.data === 'string') {
