@@ -30,7 +30,6 @@ class Sample5 extends React.Component<Props, State> {
   private remoteStream?: MediaStream
   private peerConnection?: RTCPeerConnection
 
-
   public constructor(props: Props) {
     super(props)
     this.localVideoRef = React.createRef()
@@ -165,7 +164,9 @@ class Sample5 extends React.Component<Props, State> {
     if (!isStarted && this.localStream && isChannelReady) {
       console.log('>>>>>> creating peer connection')
       this.peerConnection = new RTCPeerConnection()
-      this.peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
+      this.peerConnection.onicecandidate = (
+        event: RTCPeerConnectionIceEvent,
+      ) => {
         console.log('icecandidate event: ', event)
         if (event.candidate) {
           this.sendMessage({
