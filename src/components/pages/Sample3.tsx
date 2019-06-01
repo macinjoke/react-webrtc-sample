@@ -59,29 +59,34 @@ class Sample3 extends React.Component<Props, State> {
   private onClickStart = async () => {
     console.log('start')
     this.localPeerConnection = new RTCPeerConnection()
-    this.sendChannel = this.localPeerConnection.createDataChannel('sendDataChannel')
+    this.sendChannel = this.localPeerConnection.createDataChannel(
+      'sendDataChannel',
+    )
 
-    this.localPeerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
-      if (!this.remotePeerConnection) return
-      if (event.candidate) {
-        console.log(event.candidate.candidate)
-        this.remotePeerConnection
-          .addIceCandidate(event.candidate)
-          .then(() => {
-            console.log('[remotePeer]: addIceCandidate success.')
-          })
-          .catch(error => {
-            console.log(error)
-          })
-      }
-    }
-    this.sendChannel.onopen = () => {
+    this.localPeerConnection.addEventListener(
+      'icecandidate',
+      (event: RTCPeerConnectionIceEvent) => {
+        if (!this.remotePeerConnection) return
+        if (event.candidate) {
+          console.log(event.candidate.candidate)
+          this.remotePeerConnection
+            .addIceCandidate(event.candidate)
+            .then(() => {
+              console.log('[remotePeer]: addIceCandidate success.')
+            })
+            .catch(error => {
+              console.log(error)
+            })
+        }
+      },
+    )
+    this.sendChannel.addEventListener('open', () => {
       const textareaSend = this.textareaSendRef.current
       if (!textareaSend) return
       textareaSend.focus()
       this.setState({ isStarted: true })
-    }
-    this.sendChannel.onclose = () => {
+    })
+    this.sendChannel.addEventListener('close', () => {
       if (!this.sendChannel) return
       console.log('Closed data channel with label: ' + this.sendChannel.label)
       const textareaSend = this.textareaSendRef.current
@@ -90,40 +95,47 @@ class Sample3 extends React.Component<Props, State> {
       textareaSend.value = ''
       textareaReceive.value = ''
       this.setState({ isStarted: false })
-    }
+    })
 
     this.remotePeerConnection = new RTCPeerConnection()
 
-    this.remotePeerConnection.onicecandidate = (
-      event: RTCPeerConnectionIceEvent,
-    ) => {
-      if (!this.localPeerConnection) return
-      if (event.candidate) {
-        console.log(event.candidate.candidate)
-        this.localPeerConnection
-          .addIceCandidate(event.candidate)
-          .then(() => {
-            console.log('[remotePeer]: addIceCandidate success.')
-          })
-          .catch(error => {
-            console.log(error)
-          })
-      }
-    }
-    this.remotePeerConnection.ondatachannel = (event: RTCDataChannelEvent) => {
-      this.receiveChannel = event.channel
-      this.receiveChannel.onmessage = (event: MessageEvent) => {
-        console.log(`Received Message: ${event.data}`)
-        const textareaReceive = this.textareaReceiveRef.current
-        if (textareaReceive) textareaReceive.value = event.data
-      }
-      this.receiveChannel.onclose = () => {
-        if (!this.receiveChannel) return
-        console.log(
-          `Closed data channel with label: ${this.receiveChannel.label}`,
+    this.remotePeerConnection.addEventListener(
+      'icecandidate',
+      (event: RTCPeerConnectionIceEvent) => {
+        if (!this.localPeerConnection) return
+        if (event.candidate) {
+          console.log(event.candidate.candidate)
+          this.localPeerConnection
+            .addIceCandidate(event.candidate)
+            .then(() => {
+              console.log('[remotePeer]: addIceCandidate success.')
+            })
+            .catch(error => {
+              console.log(error)
+            })
+        }
+      },
+    )
+    this.remotePeerConnection.addEventListener(
+      'datachannel',
+      (event: RTCDataChannelEvent) => {
+        this.receiveChannel = event.channel
+        this.receiveChannel.addEventListener(
+          'message',
+          (event: MessageEvent) => {
+            console.log(`Received Message: ${event.data}`)
+            const textareaReceive = this.textareaReceiveRef.current
+            if (textareaReceive) textareaReceive.value = event.data
+          },
         )
-      }
-    }
+        this.receiveChannel.addEventListener('close', () => {
+          if (!this.receiveChannel) return
+          console.log(
+            `Closed data channel with label: ${this.receiveChannel.label}`,
+          )
+        })
+      },
+    )
 
     const offerDescription = await this.localPeerConnection.createOffer()
     this.localPeerConnection.setLocalDescription(offerDescription)
