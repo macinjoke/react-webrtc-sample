@@ -79,47 +79,52 @@ class Sample2 extends React.Component<Props, State> {
     if (!this.localStream) return
     const videoTracks = this.localStream.getVideoTracks()
     this.localPeerConnection = new RTCPeerConnection()
-    this.localPeerConnection.onicecandidate = (
-      event: RTCPeerConnectionIceEvent,
-    ) => {
-      const iceCandidate = event.candidate
-      if (iceCandidate) {
-        if (!this.remotePeerConnection) return
-        this.remotePeerConnection
-          .addIceCandidate(iceCandidate)
-          .then(() => {
-            console.log('[remotePeer]: addIceCandidate success.')
-          })
-          .catch(error => {
-            console.log(error)
-          })
-      }
-    }
+    this.localPeerConnection.addEventListener(
+      'icecandidate',
+      (event: RTCPeerConnectionIceEvent) => {
+        const iceCandidate = event.candidate
+        if (iceCandidate) {
+          if (!this.remotePeerConnection) return
+          this.remotePeerConnection
+            .addIceCandidate(iceCandidate)
+            .then(() => {
+              console.log('[remotePeer]: addIceCandidate success.')
+            })
+            .catch(error => {
+              console.log(error)
+            })
+        }
+      },
+    )
     this.remotePeerConnection = new RTCPeerConnection()
-    this.remotePeerConnection.onicecandidate = (
-      event: RTCPeerConnectionIceEvent,
-    ) => {
-      const iceCandidate = event.candidate
-      if (iceCandidate) {
-        if (!this.localPeerConnection) return
-        this.localPeerConnection
-          .addIceCandidate(iceCandidate)
-          .then(() => {
-            console.log('[localPeer]: addIceCandidate success.')
-          })
-          .catch(error => {
-            console.log(error)
-          })
-      }
-    }
-    this.remotePeerConnection.ontrack = (event: RTCTrackEvent) => {
-      console.log('ontrack')
-      if (!this.remoteVideoRef.current) return
-      if (event.streams && event.streams[0]) return
-      this.remoteStream = new MediaStream()
-      this.remoteStream.addTrack(event.track)
-      this.remoteVideoRef.current.srcObject = this.remoteStream
-    }
+    this.remotePeerConnection.addEventListener(
+      'icecandidate',
+      (event: RTCPeerConnectionIceEvent) => {
+        const iceCandidate = event.candidate
+        if (iceCandidate) {
+          if (!this.localPeerConnection) return
+          this.localPeerConnection
+            .addIceCandidate(iceCandidate)
+            .then(() => {
+              console.log('[localPeer]: addIceCandidate success.')
+            })
+            .catch(error => {
+              console.log(error)
+            })
+        }
+      },
+    )
+    this.remotePeerConnection.addEventListener(
+      'track',
+      (event: RTCTrackEvent) => {
+        console.log('ontrack')
+        if (!this.remoteVideoRef.current) return
+        if (event.streams && event.streams[0]) return
+        this.remoteStream = new MediaStream()
+        this.remoteStream.addTrack(event.track)
+        this.remoteVideoRef.current.srcObject = this.remoteStream
+      },
+    )
     this.localPeerConnection.addTrack(videoTracks[0])
     const offerDescription = await this.localPeerConnection.createOffer({
       offerToReceiveVideo: true,
