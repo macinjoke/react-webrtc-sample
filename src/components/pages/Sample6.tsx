@@ -132,9 +132,9 @@ class Sample6 extends React.Component<Props, State> {
         )
       }
     })
-    window.onbeforeunload = () => {
+    window.addEventListener('beforeunload', () => {
       this.sendMessage('bye')
-    }
+    })
   }
 
   public async componentDidMount() {
@@ -245,7 +245,7 @@ class Sample6 extends React.Component<Props, State> {
     const video = this.localVideoRef.current
     if (!video) return
     video.srcObject = localStream
-    video.onloadedmetadata = () => {
+    video.addEventListener('loadedmetadata', () => {
       const canvas = this.snappedCanvasRef.current
       if (!canvas) return
       canvas.width = video.videoWidth
@@ -255,7 +255,7 @@ class Sample6 extends React.Component<Props, State> {
         canvas.width,
         canvas.height,
       )
-    }
+    })
     this.sendMessage('got user media')
   }
 
@@ -276,21 +276,21 @@ class Sample6 extends React.Component<Props, State> {
   private createPeerConnection = () => {
     console.log('>>>>>> creating peer connection')
     this.peerConnection = new RTCPeerConnection()
-    this.peerConnection.onicecandidate = this.onicecandidate
+    this.peerConnection.addEventListener('icecandidate', this.onicecandidate)
     this.setState({ isStarted: true })
   }
 
   private addEventListenersToDataChannel = () => {
     if (!this.dataChannel) return
-    this.dataChannel.onopen = () => {
+    this.dataChannel.addEventListener('open', () => {
       console.log('CHANNEL opened!')
       this.setState({ isDataChannelOpen: true })
-    }
-    this.dataChannel.onclose = () => {
+    })
+    this.dataChannel.addEventListener('close', () => {
       console.log('CHANNEL closed!')
       this.setState({ isDataChannelOpen: false })
-    }
-    this.dataChannel.onmessage = event => {
+    })
+    this.dataChannel.addEventListener('message', event => {
       if (typeof event.data === 'string') {
         const buf = new Uint8ClampedArray(parseInt(event.data))
         console.log('Expecting a total of ' + buf.byteLength + ' bytes')
@@ -309,7 +309,7 @@ class Sample6 extends React.Component<Props, State> {
         console.log('Done. Rendering photo.')
         this.renderPhoto(this.buf)
       }
-    }
+    })
   }
 
   private renderPhoto = (data: Uint8ClampedArray) => {
@@ -348,11 +348,11 @@ class Sample6 extends React.Component<Props, State> {
     if (!isStarted) {
       this.createPeerConnection()
       if (!this.peerConnection) return
-      this.peerConnection.ondatachannel = event => {
+      this.peerConnection.addEventListener('datachannel', event => {
         console.log('ondatachannel:', event.channel)
         this.dataChannel = event.channel
         this.addEventListenersToDataChannel()
-      }
+      })
     }
   }
 
