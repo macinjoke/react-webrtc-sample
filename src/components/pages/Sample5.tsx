@@ -76,7 +76,6 @@ class Sample5 extends React.Component<Props, State> {
     })
 
     socket.on('message', async (message: Message) => {
-      console.log('Client received message:', message)
       if (message === 'got user media') {
         this.maybeStart()
       } else if (message === 'bye') {

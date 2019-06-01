@@ -120,7 +120,6 @@ class Sample5_1 extends React.Component<Props, State> {
     })
 
     socket.on('message', async (message: Message) => {
-      console.log('Client received message:', message)
       if (typeof message === 'string') {
         messageEventTarget.dispatchEvent(new Event(message))
       } else {
