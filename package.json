@@ -11,6 +11,7 @@
   "license": "MIT",
   "scripts": {
     "start": "webpack-dev-server",
+    "start:server": "ts-node server/index.ts",
     "build": "webpack",
     "lint": "eslint --ext ts --ext tsx src server",
     "eslint-check": "eslint --print-config . | eslint-config-prettier-check"
