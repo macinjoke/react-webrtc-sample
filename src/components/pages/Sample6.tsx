@@ -1,5 +1,4 @@
 import React from 'react'
-// import { shallowEqual } from 'shallow-equal-object'
 import io from 'socket.io-client'
 
 interface Props {}
@@ -106,14 +105,14 @@ class Sample6 extends React.Component<Props, State> {
       const description = await this.peerConnection.createAnswer()
       this.setLocalAndSendMessage(description)
     })
-    messageEventTarget.addEventListener('answer', async (e: any) => {
+    messageEventTarget.addEventListener('answer', (e: any) => {
       const message = e.detail
       if (!this.peerConnection) return
       this.peerConnection.setRemoteDescription(
         new RTCSessionDescription(message),
       )
     })
-    messageEventTarget.addEventListener('candidate', async (e: any) => {
+    messageEventTarget.addEventListener('candidate', (e: any) => {
       const message = e.detail
       if (!this.peerConnection || !this.state.isStarted) return
       const candidate = new RTCIceCandidate({
@@ -123,7 +122,7 @@ class Sample6 extends React.Component<Props, State> {
       this.peerConnection.addIceCandidate(candidate)
     })
 
-    this.socket.on('message', async (message: Message) => {
+    this.socket.on('message', (message: Message) => {
       if (typeof message === 'string') {
         messageEventTarget.dispatchEvent(new Event(message))
       } else {
@@ -137,14 +136,14 @@ class Sample6 extends React.Component<Props, State> {
     })
   }
 
-  public async componentDidMount() {
+  public componentDidMount() {
     console.log(`hostname: ${location.hostname}`)
     const snappedCanvas = this.snappedCanvasRef.current
     if (!snappedCanvas) return
     this.canvasContext = snappedCanvas.getContext('2d')
   }
 
-  public async componentWillUnmount() {
+  public componentWillUnmount() {
     if (this.peerConnection) this.peerConnection.close()
     this.sendMessage('bye')
     this.socket.close()
@@ -320,7 +319,6 @@ class Sample6 extends React.Component<Props, State> {
     canvas.height = video.videoHeight
     canvas.classList.add('incomingPhoto')
 
-    // TODO canvasContextやwidth周り
     this.canvasContext = canvas.getContext('2d')
     if (!this.canvasContext) return
     const img = this.canvasContext.createImageData(canvas.width, canvas.height)
@@ -342,7 +340,7 @@ class Sample6 extends React.Component<Props, State> {
     }
   }
 
-  private receiverStart = async () => {
+  private receiverStart = () => {
     const { isStarted } = this.state
     console.log('>>>>>>> receiverStart() ', isStarted)
     if (!isStarted) {
