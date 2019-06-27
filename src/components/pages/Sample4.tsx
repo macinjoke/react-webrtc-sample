@@ -52,7 +52,9 @@ class Sample4 extends React.Component<Props, State> {
     return (
       <div>
         <h2>Sample 4</h2>
-        <p>communicate to a signaling server. run <b>yarn start:server</b></p>
+        <p>
+          communicate to a signaling server. run <b>yarn start:server</b>
+        </p>
       </div>
     )
   }
