@@ -154,6 +154,7 @@ class Sample6 extends React.Component<Props, State> {
     return (
       <div>
         <h2>Sample 6</h2>
+        <p>Take a photo and share it via a data channel.</p>
         <p>isInitiator: {String(isInitiator)}</p>
         <p>dataChannel.readyState: {isDataChannelOpen ? 'open' : 'close'}</p>
         <video

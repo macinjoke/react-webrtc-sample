@@ -20,7 +20,7 @@ type TextMessage = 'got user media' | 'bye'
 type Message = TextMessage | RTCSessionDescriptionInit | CandidateMessage
 
 /**
- * Signaling and Peer Connection video
+ * Signaling and video Peer Connection
  */
 // eslint-disable-next-line @typescript-eslint/camelcase, @typescript-eslint/class-name-casing
 class Sample5_1 extends React.Component<Props, State> {
@@ -156,6 +156,7 @@ class Sample5_1 extends React.Component<Props, State> {
     return (
       <div>
         <h2>Sample 5</h2>
+        <p>Signaling and video Peer Connection</p>
         <p>isStarted: {String(isStarted)},</p>
         <p>isChannelReady: {String(isChannelReady)}</p>
         <p>isInitiator: {String(isInitiator)}</p>

@@ -35,6 +35,7 @@ class Sample3 extends React.Component<Props, State> {
     return (
       <div>
         <h2>Sample 3</h2>
+        <p>non server data channel connection.</p>
         <textarea
           ref={this.textareaSendRef}
           placeholder="Press Start, enter some text, then press Send."

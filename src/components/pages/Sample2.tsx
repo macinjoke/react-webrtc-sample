@@ -35,6 +35,7 @@ class Sample2 extends React.Component<Props, State> {
     return (
       <div>
         <h2>Sample 2</h2>
+        <p>non server video stream connection.</p>
         <video
           ref={this.localVideoRef}
           style={{ width: '320px', maxWidth: '100%' }}
