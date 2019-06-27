@@ -22,10 +22,11 @@ type Message = TextMessage | RTCSessionDescriptionInit | CandidateMessage
 /**
  * Signaling and video Peer Connection
  */
+// eslint-disable-next-line @typescript-eslint/camelcase, @typescript-eslint/class-name-casing
 class Sample5 extends React.Component<Props, State> {
   private localVideoRef: React.RefObject<HTMLVideoElement>
   private remoteVideoRef: React.RefObject<HTMLVideoElement>
-  private socket: SocketIOClient.Socket
+  private socket?: SocketIOClient.Socket
   private localStream?: MediaStream
   private remoteStream?: MediaStream
   private peerConnection?: RTCPeerConnection
@@ -74,40 +75,56 @@ class Sample5 extends React.Component<Props, State> {
       console.log(text)
     })
 
+    const messageEventTarget = new EventTarget()
+    messageEventTarget.addEventListener('got user media', () => {
+      this.initiatorStart()
+    })
+    messageEventTarget.addEventListener('bye', () => {
+      console.log('Session terminated.')
+      if (this.peerConnection) this.peerConnection.close()
+      this.setState({
+        isStarted: false,
+        isChannelReady: false,
+        isInitiator: true,
+      })
+    })
+    messageEventTarget.addEventListener('offer', async (e: any) => {
+      const message = e.detail
+      if (!this.state.isInitiator && !this.state.isStarted) {
+        await this.receiverStart()
+      }
+      if (!this.peerConnection) return
+      this.peerConnection.setRemoteDescription(
+        new RTCSessionDescription(message),
+      )
+      console.log('Sending answer to peer.')
+      const description = await this.peerConnection.createAnswer()
+      this.setLocalAndSendMessage(description)
+    })
+    messageEventTarget.addEventListener('answer', async (e: any) => {
+      const message = e.detail
+      if (!this.peerConnection) return
+      this.peerConnection.setRemoteDescription(
+        new RTCSessionDescription(message),
+      )
+    })
+    messageEventTarget.addEventListener('candidate', async (e: any) => {
+      const message = e.detail
+      if (!this.peerConnection || !this.state.isStarted) return
+      const candidate = new RTCIceCandidate({
+        sdpMLineIndex: message.label,
+        candidate: message.candidate,
+      })
+      this.peerConnection.addIceCandidate(candidate)
+    })
+
     this.socket.on('message', async (message: Message) => {
-      if (message === 'got user media') {
-        this.maybeStart()
-      } else if (message === 'bye') {
-        console.log('Session terminated.')
-        if (this.peerConnection) this.peerConnection.close()
-        this.setState({
-          isStarted: false,
-          isChannelReady: false,
-          isInitiator: true,
-        })
-      } else if (message.type === 'offer') {
-        if (!this.state.isInitiator && !this.state.isStarted) {
-          await this.maybeStart()
-        }
-        if (!this.peerConnection) return
-        this.peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message),
+      if (typeof message === 'string') {
+        messageEventTarget.dispatchEvent(new Event(message))
+      } else {
+        messageEventTarget.dispatchEvent(
+          new CustomEvent(message.type, { detail: message }),
         )
-        console.log('Sending answer to peer.')
-        const description = await this.peerConnection.createAnswer()
-        this.setLocalAndSendMessage(description)
-      } else if (message.type === 'answer') {
-        if (!this.peerConnection) return
-        this.peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message),
-        )
-      } else if (message.type === 'candidate') {
-        if (!this.peerConnection || !this.state.isStarted) return
-        const candidate = new RTCIceCandidate({
-          sdpMLineIndex: message.label,
-          candidate: message.candidate,
-        })
-        this.peerConnection.addIceCandidate(candidate)
       }
     })
   }
@@ -131,7 +148,7 @@ class Sample5 extends React.Component<Props, State> {
     if (this.peerConnection) this.peerConnection.close()
     if (this.localStream) this.localStream.getTracks()[0].stop()
     this.sendMessage('bye')
-    this.socket.close()
+    if (this.socket) this.socket.close()
   }
 
   public render() {
@@ -159,49 +176,62 @@ class Sample5 extends React.Component<Props, State> {
     )
   }
 
-  private maybeStart = async () => {
-    const { isInitiator, isStarted, isChannelReady } = this.state
-    console.log('>>>>>>> maybeStart() ', isStarted, isChannelReady)
-    if (!isStarted && this.localStream && isChannelReady) {
-      console.log('>>>>>> creating peer connection')
-      this.peerConnection = new RTCPeerConnection()
-      this.peerConnection.addEventListener(
-        'icecandidate',
-        (event: RTCPeerConnectionIceEvent) => {
-          console.log('icecandidate event: ', event)
-          if (event.candidate) {
-            this.sendMessage({
-              type: 'candidate',
-              label: event.candidate.sdpMLineIndex,
-              id: event.candidate.sdpMid,
-              candidate: event.candidate.candidate,
-            })
-          } else {
-            console.log('End of candidates.')
-          }
-        },
-      )
-      this.peerConnection.addEventListener('track', (event: RTCTrackEvent) => {
-        console.log('ontrack')
-        if (!this.remoteVideoRef.current) return
-        if (event.streams && event.streams[0]) return
-        this.remoteStream = new MediaStream()
-        this.remoteStream.addTrack(event.track)
-        this.remoteVideoRef.current.srcObject = this.remoteStream
+  private onicecandidate = (event: RTCPeerConnectionIceEvent) => {
+    console.log('icecandidate event: ', event)
+    if (event.candidate) {
+      this.sendMessage({
+        type: 'candidate',
+        label: event.candidate.sdpMLineIndex,
+        id: event.candidate.sdpMid,
+        candidate: event.candidate.candidate,
       })
-      console.log('Created RTCPeerConnnection')
-      this.peerConnection.addTrack(this.localStream.getVideoTracks()[0])
-      this.setState({ isStarted: true })
-      console.log('isInitiator', isInitiator)
-      if (isInitiator) {
-        console.log('Sending offer to peer')
-        const description = await this.peerConnection.createOffer()
-        this.setLocalAndSendMessage(description)
-      }
+    } else {
+      console.log('End of candidates.')
+    }
+  }
+
+  private ontrack = (event: RTCTrackEvent) => {
+    console.log('ontrack')
+    if (!this.remoteVideoRef.current) return
+    if (event.streams && event.streams[0]) return
+    this.remoteStream = new MediaStream()
+    this.remoteStream.addTrack(event.track)
+    this.remoteVideoRef.current.srcObject = this.remoteStream
+  }
+
+  private createPeer = (): RTCPeerConnection | undefined => {
+    console.log('>>>>>> creating peer connection')
+    if (!this.localStream) return
+    this.peerConnection = new RTCPeerConnection()
+    this.peerConnection.addEventListener('icecandidate', this.onicecandidate)
+    this.peerConnection.addEventListener('track', this.ontrack)
+    this.peerConnection.addTrack(this.localStream.getVideoTracks()[0])
+    this.setState({ isStarted: true })
+    return this.peerConnection
+  }
+
+  private initiatorStart = async () => {
+    const { isStarted, isChannelReady } = this.state
+    console.log('>>>>>>> initiatorStart() ', isStarted, isChannelReady)
+    if (!isStarted && isChannelReady) {
+      this.peerConnection = this.createPeer()
+      if (!this.peerConnection) return
+      console.log('Sending offer to peer')
+      const description = await this.peerConnection.createOffer()
+      this.setLocalAndSendMessage(description)
+    }
+  }
+
+  private receiverStart = async () => {
+    const { isStarted, isChannelReady } = this.state
+    console.log('>>>>>>> receiverStart() ', isStarted, isChannelReady)
+    if (!isStarted && isChannelReady) {
+      this.createPeer()
     }
   }
 
   private sendMessage = (message: Message) => {
+    if (!this.socket) return
     console.log('Client sending message: ', message)
     this.socket.emit('message', message)
   }
@@ -213,4 +243,5 @@ class Sample5 extends React.Component<Props, State> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/camelcase
 export default Sample5

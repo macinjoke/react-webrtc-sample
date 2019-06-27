@@ -4,7 +4,7 @@ import Sample1 from './pages/Sample1'
 import Sample2 from './pages/Sample2'
 import Sample3 from './pages/Sample3'
 import Sample4 from './pages/Sample4'
-import Sample5 from './pages/Sample5_1'
+import Sample5 from './pages/Sample5'
 import Sample6 from './pages/Sample6'
 import Top from './pages/Top'
 
