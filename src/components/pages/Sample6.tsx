@@ -26,6 +26,7 @@ class Sample6 extends React.Component<Props, State> {
   private localVideoRef: React.RefObject<HTMLVideoElement>
   private snappedCanvasRef: React.RefObject<HTMLCanvasElement>
   private incomingCanvasRef: React.RefObject<HTMLCanvasElement>
+  private localStream?: MediaStream
   private socket: SocketIOClient.Socket
   private peerConnection?: RTCPeerConnection
   private dataChannel?: RTCDataChannel
@@ -145,6 +146,7 @@ class Sample6 extends React.Component<Props, State> {
 
   public componentWillUnmount() {
     if (this.peerConnection) this.peerConnection.close()
+    if (this.localStream) this.localStream.getTracks()[0].stop()
     this.sendMessage('bye')
     this.socket.close()
   }
@@ -239,12 +241,12 @@ class Sample6 extends React.Component<Props, State> {
   }
 
   private grabWebCamVideo = async () => {
-    const localStream = await navigator.mediaDevices.getUserMedia({
+    this.localStream = await navigator.mediaDevices.getUserMedia({
       video: true,
     })
     const video = this.localVideoRef.current
     if (!video) return
-    video.srcObject = localStream
+    video.srcObject = this.localStream
     video.addEventListener('loadedmetadata', () => {
       const canvas = this.snappedCanvasRef.current
       if (!canvas) return
@@ -318,7 +320,6 @@ class Sample6 extends React.Component<Props, State> {
     if (!canvas || !video) return
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
-    canvas.classList.add('incomingPhoto')
 
     this.canvasContext = canvas.getContext('2d')
     if (!this.canvasContext) return
