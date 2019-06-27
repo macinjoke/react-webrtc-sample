@@ -6,6 +6,7 @@ interface State {
   isInitiator: boolean
   isStarted: boolean
   isDataChannelOpen: boolean
+  isSnapped: boolean
 }
 
 interface CandidateMessage {
@@ -45,6 +46,7 @@ class Sample6 extends React.Component<Props, State> {
       isInitiator: false,
       isStarted: false,
       isDataChannelOpen: false,
+      isSnapped: false,
     }
     const room = 'foo' as string
     if (room !== '') {
@@ -152,7 +154,7 @@ class Sample6 extends React.Component<Props, State> {
   }
 
   public render() {
-    const { isInitiator, isDataChannelOpen } = this.state
+    const { isInitiator, isDataChannelOpen, isSnapped } = this.state
     return (
       <div>
         <h2>Sample 6</h2>
@@ -170,9 +172,16 @@ class Sample6 extends React.Component<Props, State> {
           style={{ width: '320px', height: '240px' }}
         />
         <div>
-          <button onClick={this.onSnapClick}>Snap</button>
+          <button onClick={this.onSnapClick} disabled={!isDataChannelOpen}>
+            Snap
+          </button>
           <span> then </span>
-          <button onClick={this.onSendClick}>Send</button>
+          <button
+            onClick={this.onSendClick}
+            disabled={!isDataChannelOpen || !isSnapped}
+          >
+            Send
+          </button>
           <span> or </span>
           <button onClick={this.onSnapAndSendClick}>Snap &amp; Send</button>
         </div>
@@ -192,7 +201,7 @@ class Sample6 extends React.Component<Props, State> {
     const canvas = this.snappedCanvasRef.current
     if (!this.canvasContext || !video || !canvas) return
     this.canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height)
-    // TODO show canvas and send button
+    this.setState({ isSnapped: true })
   }
   private onSendClick = () => {
     // Split data channel message in chunks of this byte length.
