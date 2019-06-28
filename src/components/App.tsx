@@ -13,26 +13,30 @@ const App: React.FC = () => (
     <Link to="/" style={{ textDecoration: 'none', color: 'black' }}>
       <h1>React WebRTC Sample</h1>
     </Link>
-    <ul>
-      <li>
-        <Link to="/sample1">sample1</Link>
-      </li>
-      <li>
-        <Link to="/sample2">sample2</Link>
-      </li>
-      <li>
-        <Link to="/sample3">sample3</Link>
-      </li>
-      <li>
-        <Link to="/sample4">sample4</Link>
-      </li>
-      <li>
-        <Link to="/sample5">sample5</Link>
-      </li>
-      <li>
-        <Link to="/sample6">sample6</Link>
-      </li>
-    </ul>
+    <span>
+      {' '}
+      <Link to="/sample1">sample1</Link>
+    </span>
+    <span>
+      {' '}
+      <Link to="/sample2">sample2</Link>
+    </span>
+    <span>
+      {' '}
+      <Link to="/sample3">sample3</Link>
+    </span>
+    <span>
+      {' '}
+      <Link to="/sample4">sample4</Link>
+    </span>
+    <span>
+      {' '}
+      <Link to="/sample5">sample5</Link>
+    </span>
+    <span>
+      {' '}
+      <Link to="/sample6">sample6</Link>
+    </span>
     <Route exact path="/" component={Top} />
     <Route path="/sample1" component={Sample1} />
     <Route path="/sample2" component={Sample2} />
