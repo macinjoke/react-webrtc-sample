@@ -31,7 +31,8 @@ class Sample6 extends React.Component<Props, State> {
   private socket: SocketIOClient.Socket
   private peerConnection?: RTCPeerConnection
   private dataChannel?: RTCDataChannel
-  private canvasContext?: CanvasRenderingContext2D | null
+  private snappedCanvasContext?: CanvasRenderingContext2D | null
+  private incommingCanvasContext?: CanvasRenderingContext2D | null
   private buf: Uint8ClampedArray | undefined
   private count: number
 
@@ -143,7 +144,7 @@ class Sample6 extends React.Component<Props, State> {
     console.log(`hostname: ${location.hostname}`)
     const snappedCanvas = this.snappedCanvasRef.current
     if (!snappedCanvas) return
-    this.canvasContext = snappedCanvas.getContext('2d')
+    this.snappedCanvasContext = snappedCanvas.getContext('2d')
   }
 
   public componentWillUnmount() {
@@ -199,17 +200,23 @@ class Sample6 extends React.Component<Props, State> {
   private onSnapClick = () => {
     const video = this.localVideoRef.current
     const canvas = this.snappedCanvasRef.current
-    if (!this.canvasContext || !video || !canvas) return
-    this.canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height)
+    if (!this.snappedCanvasContext || !video || !canvas) return
+    this.snappedCanvasContext.drawImage(
+      video,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    )
     this.setState({ isSnapped: true })
   }
   private onSendClick = () => {
     // Split data channel message in chunks of this byte length.
     const canvas = this.snappedCanvasRef.current
-    if (!this.canvasContext || !canvas) return
+    if (!this.snappedCanvasContext || !canvas) return
     const CHUNK_LEN = 64000
     console.log('width and height ', canvas.width, canvas.height)
-    const img = this.canvasContext.getImageData(
+    const img = this.snappedCanvasContext.getImageData(
       0,
       0,
       canvas.width,
@@ -330,11 +337,14 @@ class Sample6 extends React.Component<Props, State> {
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
 
-    this.canvasContext = canvas.getContext('2d')
-    if (!this.canvasContext) return
-    const img = this.canvasContext.createImageData(canvas.width, canvas.height)
+    this.incommingCanvasContext = canvas.getContext('2d')
+    if (!this.incommingCanvasContext) return
+    const img = this.incommingCanvasContext.createImageData(
+      canvas.width,
+      canvas.height,
+    )
     img.data.set(data)
-    this.canvasContext.putImageData(img, 0, 0)
+    this.incommingCanvasContext.putImageData(img, 0, 0)
   }
 
   private initiatorStart = async () => {
