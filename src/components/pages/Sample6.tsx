@@ -98,9 +98,6 @@ class Sample6 extends React.Component<Props, State> {
     })
     messageEventTarget.addEventListener('offer', async (e: any) => {
       const message = e.detail
-      // if (!this.state.isInitiator && !this.state.isStarted) {
-      //   await this.receiverStart()
-      // }
       if (!this.peerConnection) return
       this.peerConnection.setRemoteDescription(
         new RTCSessionDescription(message),
