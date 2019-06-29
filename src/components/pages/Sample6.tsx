@@ -219,7 +219,7 @@ class Sample6 extends React.Component<Props, State> {
       canvas.width,
       canvas.height,
     )
-    const len = img.data.byteLength as any
+    const len = img.data.byteLength
     const n = (len / CHUNK_LEN) | 0
 
     console.log('Sending a total of ' + len + ' byte(s)')
@@ -232,11 +232,11 @@ class Sample6 extends React.Component<Props, State> {
       return
     }
 
-    this.dataChannel.send(len)
+    this.dataChannel.send(String(len))
 
     // split the photo and send in chunks of about 64KB
-    for (var i = 0; i < n; i++) {
-      var start = i * CHUNK_LEN,
+    for (let i = 0; i < n; i++) {
+      let start = i * CHUNK_LEN,
         end = (i + 1) * CHUNK_LEN
       console.log(start + ' - ' + (end - 1))
       this.dataChannel.send(img.data.subarray(start, end))
