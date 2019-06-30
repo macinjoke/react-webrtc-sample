@@ -5,7 +5,6 @@
   },
   "extends": [
     "plugin:react/recommended",
-    "plugin:jsx-a11y/recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
     "prettier",
@@ -13,7 +12,6 @@
     "prettier/@typescript-eslint"
   ],
   "plugins": [
-    "jsx-a11y",
     "react",
     "prettier",
     "@typescript-eslint"
@@ -26,7 +24,6 @@
   "rules": {
     "func-style": ["error", "declaration", { "allowArrowFunctions": true }],
     "prefer-arrow-callback": 2,
-    "jsx-a11y/media-has-caption": 0,
     "@typescript-eslint/explicit-function-return-type": 0,
     "@typescript-eslint/no-empty-interface": 0,
     "@typescript-eslint/no-explicit-any": 0,
