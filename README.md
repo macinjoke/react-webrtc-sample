@@ -14,9 +14,9 @@ codelab のチュートリアルと同じく、以下のようなサンプルコ
 - Sample5: シグナリングサーバを利用して、P2Pのビデオ通話。 (ローカルでやるので2つタブを立ち上げて動かす)
 - Sample6: シグナリングサーバを利用して、カメラ映像から画像を切り出し、相手に送信するサンプル。
 
-上記チュートリアルのコードとの違い
+codelab のチュートリアルとの違い
 - 素朴なJavaScript環境から Webpack, React, TypeScript にした。
-- var が使われている ES5 からES2017 に
+- var とかが使われている ES5 からES2017 に
 - 古い RTCPeerConnection.addStream() を使っている箇所を RTCPeerConnection.addTrack() に変更
 - 1から6 までのサンプルコードをひとまとめにし、１回のビルドで見えるようにした。
   - React Router を使って1ページごとに1サンプルを置いてページ遷移をしている
