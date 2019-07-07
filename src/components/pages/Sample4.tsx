@@ -2,18 +2,14 @@ import React from 'react'
 import io from 'socket.io-client'
 
 interface Props {}
-interface State {
-  isInitiator: boolean
-}
 
 /**
  * communicate to a signaling server
  */
-class Sample4 extends React.Component<Props, State> {
+class Sample4 extends React.Component<Props> {
   private socket: SocketIOClient.Socket
   public constructor(props: Props) {
     super(props)
-    this.state = { isInitiator: false }
     this.socket = io.connect('http://localhost:8000')
     const room = prompt('Enter room name:')
     if (room !== '') {
@@ -23,7 +19,6 @@ class Sample4 extends React.Component<Props, State> {
 
     this.socket.on('created', (room: string, clientId: string) => {
       console.log(room, clientId)
-      this.setState({ isInitiator: true })
     })
 
     this.socket.on('full', (room: string) => {
@@ -36,7 +31,6 @@ class Sample4 extends React.Component<Props, State> {
 
     this.socket.on('joined', (room: string, clientId: string) => {
       console.log(room, clientId)
-      this.setState({ isInitiator: false })
     })
 
     this.socket.on('log', (text: string) => {
