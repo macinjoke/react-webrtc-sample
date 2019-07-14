@@ -199,7 +199,7 @@ class Sample5 extends React.Component<Props, State> {
     this.remoteVideoRef.current.srcObject = this.remoteStream
   }
 
-  private createPeer = (): RTCPeerConnection | undefined => {
+  private createPeer = () => {
     console.log('>>>>>> creating peer connection')
     if (!this.localStream) return
     this.peerConnection = new RTCPeerConnection()
@@ -207,14 +207,13 @@ class Sample5 extends React.Component<Props, State> {
     this.peerConnection.addEventListener('track', this.ontrack)
     this.peerConnection.addTrack(this.localStream.getVideoTracks()[0])
     this.setState({ isStarted: true })
-    return this.peerConnection
   }
 
   private initiatorStart = async () => {
     const { isStarted, isChannelReady } = this.state
     console.log('>>>>>>> initiatorStart() ', isStarted, isChannelReady)
     if (!isStarted && isChannelReady) {
-      this.peerConnection = this.createPeer()
+      this.createPeer()
       if (!this.peerConnection) return
       console.log('Sending offer to peer')
       const description = await this.peerConnection.createOffer()
