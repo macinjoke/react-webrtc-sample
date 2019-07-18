@@ -248,13 +248,13 @@ const Sample5 = () => {
         ref={localVideoRef}
         style={{ width: '320px', maxWidth: '100%' }}
         autoPlay
-        playsinline
+        playsInline
       />
       <video
         ref={remoteVideoRef}
         style={{ width: '320px', maxWidth: '100%' }}
         autoPlay
-        playsinline
+        playsInline
       />
     </div>
   )
