@@ -13,6 +13,7 @@
   ],
   "plugins": [
     "react",
+    "react-hooks",
     "prettier",
     "@typescript-eslint"
   ],
@@ -27,6 +28,8 @@
     "@typescript-eslint/explicit-function-return-type": 0,
     "@typescript-eslint/no-empty-interface": 0,
     "@typescript-eslint/no-explicit-any": 0,
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error"
   },
   "settings": {
     "react": {
