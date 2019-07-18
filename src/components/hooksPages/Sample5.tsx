@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import io from 'socket.io-client'
 
 interface CandidateMessage {
@@ -39,30 +39,36 @@ const Sample5 = () => {
     return messageEventTargetRef.current
   }
 
-  const sendMessage = (message: Message) => {
+  const sendMessage = useCallback((message: Message) => {
     console.log('Client sending message: ', message)
     getSocket().emit('message', message)
-  }
+  }, [])
 
-  const setLocalAndSendMessage = (description: RTCSessionDescriptionInit) => {
-    if (!peerConnectionRef.current) return
-    peerConnectionRef.current.setLocalDescription(description)
-    sendMessage(description)
-  }
+  const setLocalAndSendMessage = useCallback(
+    (description: RTCSessionDescriptionInit) => {
+      if (!peerConnectionRef.current) return
+      peerConnectionRef.current.setLocalDescription(description)
+      sendMessage(description)
+    },
+    [sendMessage],
+  )
 
-  const onicecandidate = (event: RTCPeerConnectionIceEvent) => {
-    console.log('icecandidate event: ', event)
-    if (event.candidate) {
-      sendMessage({
-        type: 'candidate',
-        label: event.candidate.sdpMLineIndex,
-        id: event.candidate.sdpMid,
-        candidate: event.candidate.candidate,
-      })
-    } else {
-      console.log('End of candidates.')
-    }
-  }
+  const onicecandidate = useCallback(
+    (event: RTCPeerConnectionIceEvent) => {
+      console.log('icecandidate event: ', event)
+      if (event.candidate) {
+        sendMessage({
+          type: 'candidate',
+          label: event.candidate.sdpMLineIndex,
+          id: event.candidate.sdpMid,
+          candidate: event.candidate.candidate,
+        })
+      } else {
+        console.log('End of candidates.')
+      }
+    },
+    [sendMessage],
+  )
 
   const ontrack = (event: RTCTrackEvent) => {
     console.log('ontrack')
@@ -73,7 +79,7 @@ const Sample5 = () => {
     remoteVideoRef.current.srcObject = remoteStreamRef.current
   }
 
-  const createPeer = () => {
+  const createPeer = useCallback(() => {
     console.log('>>>>>> creating peer connection')
     if (!localStreamRef.current) return
     peerConnectionRef.current = new RTCPeerConnection()
@@ -83,9 +89,9 @@ const Sample5 = () => {
       localStreamRef.current.getVideoTracks()[0],
     )
     setIsStarted(true)
-  }
+  }, [onicecandidate])
 
-  const initiatorStart = async () => {
+  const initiatorStart = useCallback(async () => {
     console.log('>>>>>>> initiatorStart() ', isStarted, isChannelReady)
     if (!isStarted) {
       createPeer()
@@ -96,14 +102,14 @@ const Sample5 = () => {
       return true
     }
     return false
-  }
+  }, [isStarted, isChannelReady, createPeer, setLocalAndSendMessage])
 
-  const receiverStart = async () => {
+  const receiverStart = useCallback(async () => {
     console.log('>>>>>>> receiverStart() ', isStarted, isChannelReady)
     if (!isStarted && isChannelReady) {
       createPeer()
     }
-  }
+  }, [createPeer, isChannelReady, isStarted])
 
   useEffect(() => {
     console.log(`hostname: ${location.hostname}`)
@@ -187,7 +193,7 @@ const Sample5 = () => {
       sendMessage('bye')
       if (getSocket()) getSocket().close()
     }
-  }, [])
+  }, [sendMessage])
 
   useEffect(() => {
     const callback = () => {
@@ -198,7 +204,7 @@ const Sample5 = () => {
     return () => {
       getMessageEventTarget().removeEventListener('got user media', callback)
     }
-  }, [isInitiator, isChannelReady])
+  }, [isInitiator, isChannelReady, initiatorStart])
 
   useEffect(() => {
     const callback = async (e: any) => {
@@ -234,7 +240,13 @@ const Sample5 = () => {
     return () => {
       getMessageEventTarget().removeEventListener('offer', callback)
     }
-  }, [isInitiator, isStarted, isChannelReady])
+  }, [
+    isInitiator,
+    isStarted,
+    isChannelReady,
+    receiverStart,
+    setLocalAndSendMessage,
+  ])
 
   console.log('render end')
   return (
